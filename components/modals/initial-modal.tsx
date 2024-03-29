@@ -24,7 +24,7 @@ import { useEffect, useState } from 'react';
 import { FileUpload } from '../file-upload';
 import { cn } from '@/lib/utils';
 import { upload } from '@vercel/blob/client';
-import { createServer } from '@/db/quieries';
+import { createServer } from '@/db/queries';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Server name is required' }),

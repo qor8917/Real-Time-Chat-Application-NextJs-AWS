@@ -10,7 +10,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'media.graphassets.com',
+        hostname: 'njoez812hwdbvies.public.blob.vercel-storage.com',
         pathname: '**',
       },
     ],

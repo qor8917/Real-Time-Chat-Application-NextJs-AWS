@@ -46,10 +46,23 @@ export const getServerByProfileId = async (id: any) => {
   const { userId } = auth();
 
   if (!userId) {
-    return undefined;
+    return null;
   }
 
   const server = await db.query.servers.findFirst({
+    where: eq(servers.profileId, id),
+    with: { channels: true, members: true },
+  });
+  return server;
+};
+export const getServersByProfileId = async (id: any) => {
+  const { userId } = auth();
+
+  if (!userId) {
+    return null;
+  }
+
+  const server = await db.query.servers.findMany({
     where: eq(servers.profileId, id),
   });
 

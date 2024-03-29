@@ -1,6 +1,14 @@
 import { pgEnum, pgTable, uuid, text, timestamp } from 'drizzle-orm/pg-core';
-import { InferSelectModel, relations } from 'drizzle-orm';
+import {
+  type InferSelectModel,
+  relations,
+  InferColumnsDataTypes,
+  InferInsertModel,
+  InferModelFromColumns,
+} from 'drizzle-orm';
+import { z } from 'zod';
 
+//프로필 테이블
 export const profiles = pgTable('Profile', {
   id: uuid('id').primaryKey(),
   userId: text('userId').unique().notNull(),
@@ -14,10 +22,12 @@ export const profiles = pgTable('Profile', {
 export const profileRelation = relations(profiles, ({ many }) => ({
   servers: many(servers),
 }));
+
+//서버 테이블
 export const servers = pgTable('Server', {
   id: uuid('id').primaryKey(),
   name: text('name').notNull(),
-  inviteCode: text('inviteCode').unique(),
+  inviteCode: text('inviteCode').unique().notNull(),
   imageUrl: text('imageUrl').notNull(),
   profileId: text('profileId').references(() => profiles.id, {
     onDelete: 'cascade',
@@ -34,15 +44,21 @@ export const serverRelation = relations(servers, ({ many, one }) => ({
   }),
 }));
 
+//채널 테이블
 export const channelTypeEnum = pgEnum('channelType', [
   'TEXT',
   'AUDIO',
   'VIDEO',
 ]);
+export enum ChannelType {
+  TEXT = 'TEXT',
+  AUDIO = 'AUDIO',
+  VIDEO = 'VIDEO',
+}
 export const channels = pgTable('Channel', {
   id: uuid('id').primaryKey(),
   name: text('name').notNull(),
-  type: channelTypeEnum('type').default('TEXT'),
+  type: channelTypeEnum('type').default('TEXT').notNull(),
   serverId: text('serverId').references(() => servers.id, {
     onDelete: 'cascade',
   }),
@@ -52,7 +68,7 @@ export const channels = pgTable('Channel', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
-export const channelRelation = relations(channels, ({ many, one }) => ({
+export const channelRelation = relations(channels, ({ one }) => ({
   serverId: one(servers, {
     fields: [channels.serverId],
     references: [servers.id],
@@ -62,14 +78,21 @@ export const channelRelation = relations(channels, ({ many, one }) => ({
     references: [profiles.id],
   }),
 }));
+
+//멤버 테이블
 export const memberTypeEnum = pgEnum('memberType', [
   'ADMIN',
   'MODERATOR',
   'GUEST',
 ]);
+export enum MemberRole {
+  ADMIN = 'ADMIN',
+  MODERATOR = 'MODERATOR',
+  GUEST = 'GUEST',
+}
 export const members = pgTable('Member', {
   id: uuid('id').primaryKey(),
-  role: memberTypeEnum('role').default('GUEST'),
+  role: memberTypeEnum('role').default('GUEST').notNull(),
   serverId: text('serverId').references(() => servers.id, {
     onDelete: 'cascade',
   }),
@@ -83,6 +106,7 @@ export const memberRelation = relations(members, ({ many, one }) => ({
   }),
 }));
 
+//메세지 테이블
 export const messages = pgTable('Message', {
   id: uuid('id').primaryKey(),
   content: text('content').notNull(),

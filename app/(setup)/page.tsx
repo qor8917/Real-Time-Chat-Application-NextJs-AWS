@@ -1,5 +1,5 @@
 import InitialModal from '@/components/modals/initial-modal';
-import { getServerByProfileId } from '@/db/quieries';
+import { getServerByProfileId } from '@/db/queries';
 import initialProfile from '@/lib/initial-profile';
 import { redirect } from 'next/navigation';
 

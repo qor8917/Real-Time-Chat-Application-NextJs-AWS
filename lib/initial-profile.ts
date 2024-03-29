@@ -1,4 +1,4 @@
-import { createProfile, getProfile } from '@/db/quieries';
+import { createProfile, getProfile } from '@/db/queries';
 import { currentUser, redirectToSignIn } from '@clerk/nextjs';
 
 const initialProfile = async () => {
