@@ -2,11 +2,14 @@
 import { auth } from '@clerk/nextjs';
 import db from '@/db/drizzle';
 import {
-  type Profile,
   type Server,
   profiles,
   servers,
   channels,
+  members,
+  MemberRole,
+  InsertServer,
+  InsertProfile,
 } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { v4 } from 'uuid';
@@ -24,7 +27,7 @@ export const getProfile = async () => {
 };
 
 export const createProfile = async (user: any) => {
-  const newProfile: Profile[] = await db
+  const newProfile: InsertProfile[] = await db
     .insert(profiles)
     .values([
       {
@@ -51,7 +54,11 @@ export const getServerByProfileId = async (id: any) => {
 
   const server = await db.query.servers.findFirst({
     where: eq(servers.profileId, id),
-    with: { channels: true, members: true },
+    with: {
+      channels: true,
+      members: { with: { profile: true } },
+      profile: true,
+    },
   });
   return server;
 };
@@ -68,17 +75,37 @@ export const getServersByProfileId = async (id: any) => {
 
   return server;
 };
+export const getServerById = async (id: any) => {
+  const { userId } = auth();
 
-export const createServer = async (imageUrl: string, name: string) => {
+  if (!userId) {
+    return null;
+  }
+
+  const server = await db.query.servers.findFirst({
+    where: eq(servers.id, id),
+    with: {
+      channels: true,
+      members: { with: { profile: true } },
+      profile: true,
+    },
+  });
+  return server;
+};
+
+export const createServer = async (
+  name: string | null,
+  imageUrl: string | null
+) => {
   const profile = await getProfile();
-  const newServer: Server[] = await db
+  const newServer: InsertServer[] = await db
     .insert(servers)
     .values([
       {
         id: v4(),
-        name,
+        name: name ? name : profile!.name,
         inviteCode: v4(),
-        imageUrl,
+        imageUrl: imageUrl ? imageUrl : profile!.imageUrl,
         profileId: profile!.id,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -96,5 +123,43 @@ export const createServer = async (imageUrl: string, name: string) => {
       updatedAt: new Date(),
     },
   ]);
+  await db.insert(members).values([
+    {
+      id: v4(),
+      role: MemberRole.ADMIN,
+      profileId: profile!.id,
+      serverId: newServer[0].id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ]);
   return newServer;
+};
+
+export const updateServerInviteCode = async (
+  serverId: string
+): Promise<Server> => {
+  const updatedServer = await db
+    .update(servers)
+    .set({ inviteCode: v4() })
+    .where(eq(servers.id, serverId))
+    .returning();
+  return updatedServer[0];
+};
+export const updateServerNameAndImageUrl = async (
+  serversId: string,
+  name: string | null,
+  imageUrl: string | null
+): Promise<Server> => {
+  const profile = await getProfile();
+
+  const updatedServer = await db
+    .update(servers)
+    .set({
+      name: name ? name : profile?.name,
+      imageUrl: imageUrl ? imageUrl : profile?.imageUrl,
+    })
+    .where(eq(servers.id, serversId))
+    .returning();
+  return updatedServer[0];
 };

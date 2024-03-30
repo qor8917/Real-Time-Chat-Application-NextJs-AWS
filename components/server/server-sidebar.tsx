@@ -9,7 +9,7 @@ import { ServerSearch } from './server-search';
 import { ServerSection } from './server-section';
 import { ServerChannel } from './server-channel';
 import { ServerMember } from './server-member';
-import { getProfile, getServerByProfileId } from '@/db/queries';
+import { getProfile, getServerById } from '@/db/queries';
 import { Channel, ChannelType, Member, MemberRole, Server } from '@/db/schema';
 
 interface ServerSidebarProps {
@@ -36,8 +36,7 @@ export const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
   if (!profile) {
     return redirect('/');
   }
-
-  const server = await getServerByProfileId(profile.id);
+  const server = await getServerById(serverId);
 
   const textChannels = server?.channels.filter(
     (channel: any) => channel.type === ChannelType.TEXT

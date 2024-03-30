@@ -27,14 +27,13 @@ import { Button } from '@/components/ui/button';
 import { FileUpload } from '@/components/file-upload';
 import { useRouter } from 'next/navigation';
 import { useModal } from '@/hooks/use-modal-store';
+import { upload } from '@vercel/blob/client';
+import { updateServerNameAndImageUrl } from '@/db/queries';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
-  name: z.string().min(1, {
-    message: 'Server name is required.',
-  }),
-  imageUrl: z.string().min(1, {
-    message: 'Server image is required.',
-  }),
+  name: z.string().min(1, { message: 'Server name is required' }) || z.null(),
+  file: z.any(),
 });
 
 export const EditServerModal = () => {
@@ -43,33 +42,40 @@ export const EditServerModal = () => {
 
   const isModalOpen = isOpen && type === 'editServer';
   const { server } = data;
-
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      imageUrl: '',
+      file: '',
     },
   });
 
   useEffect(() => {
     if (server) {
-      form.setValue('name', server.name);
-      form.setValue('imageUrl', server.imageUrl);
+      form.setValue('name', server!.name);
+      form.setValue('file', server!.imageUrl!);
     }
-  }, [server, form]);
+  }, [isOpen]);
 
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      await axios.patch(`/api/servers/${server?.id}`, values);
-
-      form.reset();
+    if (values.name) {
+      //blob 서버에 서버 이미지 올리기
+      let newBlob;
+      if (values.file) {
+        newBlob = await upload(values.file.name, values.file, {
+          access: 'public',
+          handleUploadUrl: '/api/avatar/upload',
+        });
+      }
+      const updatedServer = await updateServerNameAndImageUrl(
+        server!.id,
+        values.name ? values.name : null,
+        newBlob ? newBlob.url : null
+      );
       router.refresh();
-      onClose();
-    } catch (error) {
-      console.log(error);
+      handleClose();
     }
   };
 
@@ -96,11 +102,14 @@ export const EditServerModal = () => {
               <div className="flex items-center justify-center text-center">
                 <FormField
                   control={form.control}
-                  name="imageUrl"
+                  name="file"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <FileUpload onChange={field.onChange} />
+                        <FileUpload
+                          onChange={field.onChange}
+                          value={field.value}
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -129,9 +138,15 @@ export const EditServerModal = () => {
               />
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4">
-              <Button variant="primary" disabled={isLoading}>
-                Save
-              </Button>
+              {isLoading ? (
+                <Button variant="primary" disabled={isLoading}>
+                  <div className={cn('animate-spin text-2xl')}>😆</div>
+                </Button>
+              ) : (
+                <Button variant="primary" disabled={isLoading}>
+                  Save
+                </Button>
+              )}
             </DialogFooter>
           </form>
         </Form>

@@ -25,12 +25,15 @@ import { FileUpload } from '../file-upload';
 import { cn } from '@/lib/utils';
 import { upload } from '@vercel/blob/client';
 import { createServer } from '@/db/queries';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
-  name: z.string().min(1, { message: 'Server name is required' }),
-  file: typeof window === 'undefined' ? z.any() : z.instanceof(File),
+  name: z.string().min(1, { message: 'Server name is required' }) || z.null(),
+  file: z.any(),
 });
 const InitialModal = () => {
+  const router = useRouter();
+
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
@@ -39,39 +42,30 @@ const InitialModal = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      file: undefined,
+      file: '',
     },
   });
 
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (values.name && values.file) {
+    if (values.name) {
       //blob 서버에 서버 이미지 올리기
-      const newBlob = await upload(values.file.name, values.file, {
-        access: 'public',
-        handleUploadUrl: '/api/avatar/upload',
-      });
-      console.log(newBlob);
-      //전달 받은 서버 이미지 url 과 이름으로 서버 생성
-      const server = await createServer(newBlob.url, values.name);
-    }
-    //채널도 같이 생성
-
-    try {
-      // await axios.post('/api/servers', values);
-      // if (values.name && values.file) {
-      //   const newBlob = await upload(values.file.name, values.file, {
-      //     access: 'public',
-      //     handleUploadUrl: '/api/avatar/upload',
-      //   });
-      // }
-      // toast({
-      //   description: 'Your message has been sent.',
-      // });
-    } catch (error) {
-      console.log(error);
+      let newBlob;
+      if (values.file) {
+        newBlob = await upload(values.file.name, values.file, {
+          access: 'public',
+          handleUploadUrl: '/api/avatar/upload',
+        });
+      }
+      const server = await createServer(
+        values.name ? values.name : null,
+        newBlob ? newBlob.url : null
+      );
+      form.reset();
+      router.refresh();
     }
   };
+
   if (!isMounted) {
     return null;
   }
@@ -97,7 +91,10 @@ const InitialModal = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <FileUpload onChange={field.onChange} />
+                        <FileUpload
+                          onChange={field.onChange}
+                          value={field.value}
+                        />
                       </FormControl>
                     </FormItem>
                   )}

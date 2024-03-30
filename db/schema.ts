@@ -2,11 +2,8 @@ import { pgEnum, pgTable, uuid, text, timestamp } from 'drizzle-orm/pg-core';
 import {
   type InferSelectModel,
   relations,
-  InferColumnsDataTypes,
   InferInsertModel,
-  InferModelFromColumns,
 } from 'drizzle-orm';
-import { z } from 'zod';
 
 //프로필 테이블
 export const profiles = pgTable('Profile', {
@@ -14,7 +11,7 @@ export const profiles = pgTable('Profile', {
   userId: text('userId').unique().notNull(),
   name: text('name').notNull(),
   email: text('email').notNull(),
-  imageUrl: text('imageUrl').notNull(),
+  imageUrl: text('imageUrl'),
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
 });
@@ -28,7 +25,7 @@ export const servers = pgTable('Server', {
   id: uuid('id').primaryKey(),
   name: text('name').notNull(),
   inviteCode: text('inviteCode').unique().notNull(),
-  imageUrl: text('imageUrl').notNull(),
+  imageUrl: text('imageUrl'),
   profileId: text('profileId').references(() => profiles.id, {
     onDelete: 'cascade',
   }),
@@ -38,7 +35,7 @@ export const servers = pgTable('Server', {
 export const serverRelation = relations(servers, ({ many, one }) => ({
   channels: many(channels),
   members: many(members),
-  profileId: one(profiles, {
+  profile: one(profiles, {
     fields: [servers.profileId],
     references: [profiles.id],
   }),
@@ -69,11 +66,11 @@ export const channels = pgTable('Channel', {
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
 export const channelRelation = relations(channels, ({ one }) => ({
-  serverId: one(servers, {
+  server: one(servers, {
     fields: [channels.serverId],
     references: [servers.id],
   }),
-  profileId: one(profiles, {
+  profile: one(profiles, {
     fields: [channels.profileId],
     references: [profiles.id],
   }),
@@ -96,13 +93,20 @@ export const members = pgTable('Member', {
   serverId: text('serverId').references(() => servers.id, {
     onDelete: 'cascade',
   }),
+  profileId: text('profileId').references(() => profiles.id, {
+    onDelete: 'cascade',
+  }),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
-export const memberRelation = relations(members, ({ many, one }) => ({
-  serverId: one(servers, {
+export const memberRelation = relations(members, ({ one }) => ({
+  server: one(servers, {
     fields: [members.serverId],
     references: [servers.id],
+  }),
+  profile: one(profiles, {
+    fields: [members.profileId],
+    references: [profiles.id],
   }),
 }));
 
@@ -117,18 +121,52 @@ export const messages = pgTable('Message', {
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
 export const messageRelation = relations(messages, ({ one }) => ({
-  memberId: one(members, {
+  member: one(members, {
     fields: [messages.memberId],
     references: [members.id],
   }),
-  channelId: one(channels, {
+  channel: one(channels, {
     fields: [messages.channelId],
     references: [channels.id],
   }),
 }));
 
-export type Profile = InferSelectModel<typeof profiles>;
-export type Server = InferSelectModel<typeof servers>;
-export type Member = InferSelectModel<typeof members>;
-export type Channel = InferSelectModel<typeof channels>;
-export type Message = InferSelectModel<typeof messages>;
+export type Profile =
+  | (InferSelectModel<typeof profiles> & {
+      servers: Server[];
+    })
+  | InferSelectModel<typeof profiles>;
+export type InsertProfile = InferInsertModel<typeof profiles>;
+
+export type Server =
+  | (InferSelectModel<typeof servers> & {
+      channels: Channel[];
+      members: Member[];
+      profile: Profile;
+    })
+  | InferSelectModel<typeof servers>;
+
+export type InsertServer =
+  | (InferInsertModel<typeof servers> & {
+      channels: Channel[];
+      members: Member[];
+      profile: Profile;
+    })
+  | InferInsertModel<typeof servers>;
+
+export type Member =
+  | (InferSelectModel<typeof members> & {
+      server: Server;
+      profile: Profile;
+    })
+  | InferSelectModel<typeof members>;
+export type Channel =
+  | (InferSelectModel<typeof channels> & {
+      server: Server;
+      profile: Profile;
+    })
+  | InferSelectModel<typeof channels>;
+export type Message = InferSelectModel<typeof messages> & {
+  member: Member;
+  channel: Channel;
+};

@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, useCallback, useMemo, ChangeEvent } from 'react';
+import { useState, useCallback, useMemo, ChangeEvent, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 import { useToast } from './ui/use-toast';
 import Image from 'next/image';
-import { upload } from '@vercel/blob/client';
 
 interface FileUploadProps {
-  onChange: (file: File | undefined) => void;
+  onChange: (file: File | null) => void;
+  value: string;
 }
-export function FileUpload({ onChange }: FileUploadProps) {
+export function FileUpload({ onChange, value }: FileUploadProps) {
+  useEffect(() => {
+    if (value) setData((prev) => ({ ...prev, image: value }));
+  }, [value]);
   const { toast } = useToast();
   const [data, setData] = useState<{
     image: string | null;
@@ -24,14 +27,15 @@ export function FileUpload({ onChange }: FileUploadProps) {
   const onChangePicture = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files && event.currentTarget.files[0];
-      console.log(file);
       if (file) {
         if (file.size / 1024 / 1024 > 4) {
+          //4MB 이상이면 에러 토스트 디스플레이
           toast({
             variant: 'destructive',
             description: 'File size too big (max 4MB)',
           });
         } else {
+          //미리보기 이미지 생성
           setFile(file);
           const reader = new FileReader();
           reader.onload = (e) => {
@@ -150,7 +154,6 @@ export function FileUpload({ onChange }: FileUploadProps) {
           <span className="sr-only">Photo upload</span>
         </div>
         {data.image && (
-          // eslint-disable-next-line @next/next/no-img-element
           <>
             <Image
               src={data.image}
@@ -164,7 +167,7 @@ export function FileUpload({ onChange }: FileUploadProps) {
                 e.preventDefault();
                 setFile(null);
                 setData((prev) => ({ ...prev, image: null }));
-                onChange(undefined);
+                onChange(null);
               }}
             >
               <X className="w-4 h-4" />

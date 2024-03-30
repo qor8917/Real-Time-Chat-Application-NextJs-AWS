@@ -5,7 +5,6 @@ import axios from 'axios';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { ChannelType } from '@prisma/client';
 
 import {
   Dialog,
@@ -34,6 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useEffect } from 'react';
+import { ChannelType } from '@/db/schema';
 
 const formSchema = z.object({
   name: z

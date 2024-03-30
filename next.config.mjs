@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: false,
   logging: {
     fetches: {
       fullUrl: true,
@@ -11,6 +12,11 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'njoez812hwdbvies.public.blob.vercel-storage.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.clerk.com',
         pathname: '**',
       },
     ],

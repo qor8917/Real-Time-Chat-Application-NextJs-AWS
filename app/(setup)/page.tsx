@@ -7,6 +7,8 @@ const SetupPage = async () => {
   const profile = await initialProfile();
   //프로필 아이디로 서버 있는지 확인 있으면 리다이렉트
   const server = await getServerByProfileId(profile.id);
+  console.log('테마 두번');
+
   if (server) {
     return redirect(`/servers/${server.id}`);
   }

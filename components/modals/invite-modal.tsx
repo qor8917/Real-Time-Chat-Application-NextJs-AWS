@@ -1,28 +1,28 @@
-"use client";
+'use client';
 
-import axios from "axios";
-import { Check, Copy, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { Check, Copy, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { useModal } from "@/hooks/use-modal-store";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useOrigin } from "@/hooks/use-origin";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { useModal } from '@/hooks/use-modal-store';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useOrigin } from '@/hooks/use-origin';
+import { updateServerInviteCode } from '@/db/queries';
+import { useRouter } from 'next/navigation';
 
 export const InviteModal = () => {
   const { onOpen, isOpen, onClose, type, data } = useModal();
   const origin = useOrigin();
-
-  const isModalOpen = isOpen && type === "invite";
+  const router = useRouter();
+  const isModalOpen = isOpen && type === 'invite';
   const { server } = data;
-
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,15 +40,18 @@ export const InviteModal = () => {
   const onNew = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.patch(`/api/servers/${server?.id}/invite-code`);
+      //서버의 invite-code 업데이트
+      const updatedServer = await updateServerInviteCode(server!.id);
+      //모들 오픈
 
-      onOpen("invite", { server: response.data });
+      onOpen('invite', { server: updatedServer });
+      router.refresh();
     } catch (error) {
       console.log(error);
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={isModalOpen} onOpenChange={onClose}>
@@ -59,9 +62,7 @@ export const InviteModal = () => {
           </DialogTitle>
         </DialogHeader>
         <div className="p-6">
-          <Label
-            className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70"
-          >
+          <Label className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">
             Server invite link
           </Label>
           <div className="flex items-center mt-2 gap-x-2">
@@ -69,12 +70,14 @@ export const InviteModal = () => {
               disabled={isLoading}
               className="bg-zinc-300/50 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
               value={inviteUrl}
+              readOnly
             />
             <Button disabled={isLoading} onClick={onCopy} size="icon">
-              {copied 
-                ? <Check className="w-4 h-4" /> 
-                : <Copy className="w-4 h-4" />
-              }
+              {copied ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
             </Button>
           </div>
           <Button
@@ -90,5 +93,5 @@ export const InviteModal = () => {
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
