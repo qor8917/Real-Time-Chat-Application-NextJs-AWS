@@ -8,7 +8,7 @@ import Image from 'next/image';
 
 interface FileUploadProps {
   onChange: (file: File | null) => void;
-  value: string;
+  value?: string;
 }
 export function FileUpload({ onChange, value }: FileUploadProps) {
   useEffect(() => {
