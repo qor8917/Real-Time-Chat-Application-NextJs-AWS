@@ -5,7 +5,6 @@ import { format } from 'date-fns';
 import { Loader2, ServerCrash } from 'lucide-react';
 
 import { useChatQuery } from '@/hooks/use-chat-query';
-import { useChatSocket } from '@/hooks/use-chat-socket';
 import { useChatScroll } from '@/hooks/use-chat-scroll';
 
 import { ChatWelcome } from './chat-welcome';

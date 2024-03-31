@@ -38,7 +38,7 @@ export const ServerMember = ({ member }: ServerMemberProps) => {
       )}
     >
       <UserAvatar
-        src={member.profile.imageUrl}
+        src={member.profile.imageUrl as string}
         className="h-8 w-8 md:h-8 md:w-8"
       />
       <p
