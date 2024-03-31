@@ -1,4 +1,11 @@
-import { pgEnum, pgTable, uuid, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  pgEnum,
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  boolean,
+} from 'drizzle-orm/pg-core';
 import {
   type InferSelectModel,
   relations,
@@ -56,12 +63,16 @@ export const channels = pgTable('Channel', {
   id: uuid('id').primaryKey(),
   name: text('name').notNull(),
   type: channelTypeEnum('type').default('TEXT').notNull(),
-  serverId: text('serverId').references(() => servers.id, {
-    onDelete: 'cascade',
-  }),
-  profileId: text('profileId').references(() => profiles.id, {
-    onDelete: 'cascade',
-  }),
+  serverId: text('serverId')
+    .references(() => servers.id, {
+      onDelete: 'cascade',
+    })
+    .notNull(),
+  profileId: text('profileId')
+    .references(() => profiles.id, {
+      onDelete: 'cascade',
+    })
+    .notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
@@ -115,6 +126,7 @@ export const messages = pgTable('Message', {
   id: uuid('id').primaryKey(),
   content: text('content').notNull(),
   fileUrl: text('fileUrl').notNull(),
+  deleted: boolean('deleted').default(false),
   channelId: text('channelId').references(() => channels.id),
   memberId: text('memberId').references(() => members.id),
   createdAt: timestamp('createdAt').defaultNow().notNull(),

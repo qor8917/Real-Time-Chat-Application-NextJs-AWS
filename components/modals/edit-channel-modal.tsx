@@ -1,6 +1,5 @@
 'use client';
 
-import qs from 'query-string';
 import axios from 'axios';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,7 +45,7 @@ const formSchema = z.object({
     .refine((name) => name !== 'general', {
       message: "Channel name cannot be 'general'",
     }),
-  type: z.nativeEnum(ChannelType),
+  type: z.any(),
 });
 
 export const EditChannelModal = () => {

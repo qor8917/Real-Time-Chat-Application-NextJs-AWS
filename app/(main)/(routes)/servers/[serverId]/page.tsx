@@ -1,12 +1,29 @@
-import { currentUser, redirectToSignIn } from '@clerk/nextjs';
+import { getInitialChannelByServerId, getProfile } from '@/db/queries';
+import { redirectToSignIn } from '@clerk/nextjs';
+import { redirect } from 'next/navigation';
 
-const ServerPage = async () => {
-  const user = await currentUser();
-  if (!user) {
+interface ServerIdPageProps {
+  params: {
+    serverId: string;
+  };
+}
+
+const ServerIdPage = async ({ params }: ServerIdPageProps) => {
+  const profile = await getProfile();
+
+  if (!profile) {
     return redirectToSignIn();
   }
 
-  return <div>서버페이지</div>;
+  const server = await getInitialChannelByServerId(params.serverId);
+
+  const initialChannel = server?.channels[0];
+
+  if (initialChannel?.name !== 'general') {
+    return null;
+  }
+
+  return redirect(`/servers/${params.serverId}/channels/${initialChannel?.id}`);
 };
 
-export default ServerPage;
+export default ServerIdPage;
