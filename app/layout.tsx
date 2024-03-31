@@ -20,7 +20,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log('루트');
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
