@@ -27,7 +27,6 @@ export const getProfile = async () => {
   });
   return profile;
 };
-
 export const createProfile = async (user: any) => {
   const newProfile: InsertProfile[] = await db
     .insert(profiles)
@@ -46,7 +45,6 @@ export const createProfile = async (user: any) => {
 
   return newProfile;
 };
-
 export const getServerByProfileId = async (id: any) => {
   const { userId } = auth();
 
@@ -95,7 +93,25 @@ export const getServerById = async (id: any) => {
   });
   return server;
 };
+export const getInitialChannelByServerId = async (serverId: string) => {
+  const { userId } = auth();
 
+  if (!userId) {
+    return null;
+  }
+
+  const server = await db.query.servers.findFirst({
+    where: eq(servers.id, serverId),
+    with: {
+      channels: {
+        where: eq(channels.name, 'general'),
+        orderBy: (channels, { asc }) => [asc(channels.createdAt)],
+      },
+      members: { with: { profile: true } },
+    },
+  });
+  return server;
+};
 export const createServer = async (
   name: string | null,
   imageUrl: string | null
@@ -138,7 +154,6 @@ export const createServer = async (
   ]);
   return newServer;
 };
-
 export const updateServerInviteCode = async (
   serverId: string
 ): Promise<Server> => {
@@ -166,7 +181,6 @@ export const updateServerNameAndImageUrl = async (
     .returning();
   return updatedServer[0];
 };
-
 export const createChannel = async (
   serverId: string,
   name: string,
@@ -191,7 +205,6 @@ export const deleteServerById = async (id: string) => {
 export const deleteChannelById = async (id: string) => {
   await db.delete(channels).where(eq(channels.id, id));
 };
-
 export const updateChannelNameAndType = async (
   channelId: string,
   name: string | null,
@@ -206,4 +219,34 @@ export const updateChannelNameAndType = async (
     .where(eq(channels.id, channelId))
     .returning();
   return updatedChannel[0];
+};
+export const getChannelById = async (id: any) => {
+  const { userId } = auth();
+
+  if (!userId) {
+    return null;
+  }
+
+  const channel = await db.query.channels.findFirst({
+    where: eq(channels.id, id),
+  });
+  return channel;
+};
+export const getMemberByServerIdAndProfileId = async (
+  serverId: any,
+  profileId: any
+) => {
+  const { userId } = auth();
+
+  if (!userId) {
+    return null;
+  }
+
+  const channel = await db.query.members.findFirst({
+    where: and(
+      eq(members.serverId, serverId),
+      eq(members.profileId, profileId)
+    ),
+  });
+  return channel;
 };

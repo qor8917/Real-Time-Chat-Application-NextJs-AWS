@@ -28,7 +28,6 @@ export const DeleteServerModal = () => {
   const onClick = async () => {
     try {
       setIsLoading(true);
-
       await deleteServerById(server!.id);
       onClose();
       router.refresh();
@@ -50,7 +49,7 @@ export const DeleteServerModal = () => {
             Are you sure you want to do this? <br />
             <span className="text-indigo-500 font-semibold">
               {server?.name}
-            </span>{' '}
+            </span>
             will be permanently deleted.
           </DialogDescription>
         </DialogHeader>
