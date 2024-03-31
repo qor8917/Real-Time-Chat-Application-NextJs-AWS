@@ -10,8 +10,10 @@ import {
   MemberRole,
   InsertServer,
   InsertProfile,
+  Channel,
+  ChannelType,
 } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { v4 } from 'uuid';
 
 export const getProfile = async () => {
@@ -71,6 +73,7 @@ export const getServersByProfileId = async (id: any) => {
 
   const server = await db.query.servers.findMany({
     where: eq(servers.profileId, id),
+    orderBy: (servers, { asc }) => [asc(servers.createdAt)],
   });
 
   return server;
@@ -162,4 +165,45 @@ export const updateServerNameAndImageUrl = async (
     .where(eq(servers.id, serversId))
     .returning();
   return updatedServer[0];
+};
+
+export const createChannel = async (
+  serverId: string,
+  name: string,
+  type: ChannelType
+) => {
+  const profile = await getProfile();
+  const createChannel = await db.insert(channels).values([
+    {
+      id: v4(),
+      name,
+      type,
+      profileId: profile!.id,
+      serverId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ]);
+};
+export const deleteServerById = async (id: string) => {
+  await db.delete(servers).where(eq(servers.id, id));
+};
+export const deleteChannelById = async (id: string) => {
+  await db.delete(channels).where(eq(channels.id, id));
+};
+
+export const updateChannelNameAndType = async (
+  channelId: string,
+  name: string | null,
+  type: ChannelType
+): Promise<Channel> => {
+  const updatedChannel = await db
+    .update(channels)
+    .set({
+      name: name ? name : '제목없음',
+      type,
+    })
+    .where(eq(channels.id, channelId))
+    .returning();
+  return updatedChannel[0];
 };

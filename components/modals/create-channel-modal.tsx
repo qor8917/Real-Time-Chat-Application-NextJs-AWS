@@ -1,7 +1,5 @@
 'use client';
 
-import qs from 'query-string';
-import axios from 'axios';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -34,6 +32,8 @@ import {
 } from '@/components/ui/select';
 import { useEffect } from 'react';
 import { ChannelType } from '@/db/schema';
+import { createChannel } from '@/db/queries';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   name: z
@@ -53,7 +53,7 @@ export const CreateChannelModal = () => {
   const params = useParams();
 
   const isModalOpen = isOpen && type === 'createChannel';
-  const { channelType } = data;
+  const { channelType, server } = data;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -75,15 +75,12 @@ export const CreateChannelModal = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const url = qs.stringifyUrl({
-        url: '/api/channels',
-        query: {
-          serverId: params?.serverId,
-        },
-      });
-      await axios.post(url, values);
+      const createdChannel = await createChannel(
+        server!.id,
+        values.name,
+        values.type
+      );
 
-      form.reset();
       router.refresh();
       onClose();
     } catch (error) {
@@ -161,9 +158,15 @@ export const CreateChannelModal = () => {
               />
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4">
-              <Button variant="primary" disabled={isLoading}>
-                Create
-              </Button>
+              {isLoading ? (
+                <Button variant="primary" disabled={isLoading}>
+                  <div className={cn('animate-spin text-2xl')}>😆</div>
+                </Button>
+              ) : (
+                <Button variant="primary" disabled={isLoading}>
+                  Create
+                </Button>
+              )}
             </DialogFooter>
           </form>
         </Form>

@@ -114,6 +114,7 @@ export const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
               channelType={ChannelType.TEXT}
               role={role}
               label="Text Channels"
+              server={server}
             />
             <div className="space-y-[2px]">
               {textChannels.map((channel: any) => (
@@ -134,6 +135,7 @@ export const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
               channelType={ChannelType.AUDIO}
               role={role}
               label="Voice Channels"
+              server={server}
             />
             <div className="space-y-[2px]">
               {audioChannels.map((channel: any) => (
@@ -154,6 +156,7 @@ export const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
               channelType={ChannelType.VIDEO}
               role={role}
               label="Video Channels"
+              server={server}
             />
             <div className="space-y-[2px]">
               {videoChannels.map((channel: any) => (

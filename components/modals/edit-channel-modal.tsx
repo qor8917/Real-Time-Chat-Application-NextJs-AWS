@@ -33,8 +33,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useEffect } from 'react';
-import { ChannelType, channelTypeEnum } from '@/db/schema';
+import { ChannelType } from '@/db/schema';
 import { cn } from '@/lib/utils';
+import { updateChannelNameAndType } from '@/db/queries';
 
 const formSchema = z.object({
   name: z
@@ -74,17 +75,13 @@ export const EditChannelModal = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const url = qs.stringifyUrl({
-        url: `/api/channels/${channel?.id}`,
-        query: {
-          serverId: server?.id,
-        },
-      });
-      await axios.patch(url, values);
-
-      form.reset();
+      const updatedChannel = await updateChannelNameAndType(
+        channel!.id,
+        values.name,
+        values.type
+      );
       router.refresh();
-      onClose();
+      handleClose();
     } catch (error) {
       console.log(error);
     }
@@ -143,7 +140,7 @@ export const EditChannelModal = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.values(channelTypeEnum).map((type) => (
+                        {Object.values(ChannelType).map((type) => (
                           <SelectItem
                             key={type}
                             value={type}
