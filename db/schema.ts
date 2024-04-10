@@ -151,12 +151,11 @@ export type Profile =
 export type InsertProfile = InferInsertModel<typeof profiles>;
 
 export type Server =
-  | (InferSelectModel<typeof servers> & {
-      channels: Channel[];
-      members: Member[];
-      profile: Profile;
-    })
-  | InferSelectModel<typeof servers>;
+  | InferSelectModel<typeof servers> & {
+      channels?: Channel[];
+      members?: Member[];
+      profile?: Profile;
+    };
 
 export type InsertServer =
   | (InferInsertModel<typeof servers> & {

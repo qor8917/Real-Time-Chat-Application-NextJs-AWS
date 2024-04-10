@@ -9,10 +9,9 @@ import { useChatScroll } from '@/hooks/use-chat-scroll';
 
 import { ChatWelcome } from './chat-welcome';
 import { ChatItem } from './chat-item';
-import { Member, Message, Profile } from '@/db/schema';
+import { Member, Profile } from '@/db/schema';
 import { useChatSocket } from '@/hooks/use-chat-socket';
 import { useSocket } from '../providers/socket-provider';
-import { useQueryClient } from '@tanstack/react-query';
 
 const DATE_FORMAT = 'd MMM yyyy, HH:mm';
 
@@ -50,10 +49,9 @@ export const ChatMessages = ({
     });
 
   //메세지 구독중
-  useChatSocket({ queryKey, addKey, updateKey });
+  useChatSocket({ queryKey, addKey, updateKey, bottomRef });
   useEffect(() => {
     if (!isConnected) return;
-
     socket!.send(
       JSON.stringify({
         action: 'enterroom',
@@ -63,16 +61,7 @@ export const ChatMessages = ({
         },
       })
     );
-    return socket!.send(
-      JSON.stringify({
-        action: 'leaveroom',
-        data: {
-          roomId: chatId,
-          userId: profile.name,
-        },
-      })
-    );
-  }, [isConnected, chatId]);
+  }, [isConnected]);
   //스크롤 감지
   useChatScroll({
     chatRef,
@@ -81,7 +70,6 @@ export const ChatMessages = ({
     shouldLoadMore: !isFetchingNextPage && !!hasNextPage,
     count: data?.pages?.[0]?.items?.length ?? 0,
   });
-
   if (status === 'pending') {
     return (
       <div className="flex flex-col flex-1 justify-center items-center">
@@ -105,7 +93,7 @@ export const ChatMessages = ({
   }
 
   return (
-    <div ref={chatRef} className="flex-1 flex flex-col py-4 overflow-y-auto ">
+    <div ref={chatRef} className="flex-1 flex flex-col overflow-y-auto ">
       {!hasNextPage && <div className="flex-1" />}
       {!hasNextPage && <ChatWelcome type={type} name={name} />}
       {hasNextPage && (
@@ -135,10 +123,7 @@ export const ChatMessages = ({
                   content={message.msg}
                   fileUrl={message.fileUrl}
                   deleted={message.deleted as boolean}
-                  timestamp={format(
-                    fromUnixTime(message.createdAt),
-                    DATE_FORMAT
-                  )}
+                  timestamp={message.createdAt}
                   isUpdated={message.updatedAt !== message.createdAt}
                 />
               ))}

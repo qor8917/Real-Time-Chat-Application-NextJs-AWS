@@ -23,7 +23,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const socket = new WebSocket(process.env.NEXT_PUBLIC_WSS_URL!);
     socket.onopen = () => {
-      console.log('WebSocket connected111');
+      console.log('WebSocket connected');
       setIsConnected(true);
       setSocket(socket);
     };

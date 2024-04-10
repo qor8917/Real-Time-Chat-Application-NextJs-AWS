@@ -15,10 +15,12 @@ import {
 import { useModal } from '@/hooks/use-modal-store';
 import { Button } from '@/components/ui/button';
 import { deleteMember, getProfile } from '@/db/queries';
+import { useSocket } from '../providers/socket-provider';
 
 export const LeaveServerModal = () => {
   const { isOpen, onClose, type, data } = useModal();
   const router = useRouter();
+  const { socket } = useSocket();
 
   const isModalOpen = isOpen && type === 'leaveServer';
   const { server } = data;
@@ -30,7 +32,17 @@ export const LeaveServerModal = () => {
       setIsLoading(true);
       const profile = await getProfile();
       const deleted = await deleteMember(server?.id!, profile?.id!);
-
+      // server?.channels?.forEach((ch) =>
+      //   socket!.send(
+      //     JSON.stringify({
+      //       action: 'leaveroom',
+      //       data: {
+      //         roomId: ch.id,
+      //         userId: profile?.name,
+      //       },
+      //     })
+      //   )
+      // );
       onClose();
       router.refresh();
       router.push('/');

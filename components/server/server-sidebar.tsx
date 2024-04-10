@@ -36,18 +36,18 @@ export const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
   if (!profile) {
     return redirect('/');
   }
-  const server = await getServerById(serverId);
+  const server = (await getServerById(serverId)) as Server;
 
-  const textChannels = server?.channels.filter(
+  const textChannels = server?.channels?.filter(
     (channel: any) => channel.type === ChannelType.TEXT
   );
-  const audioChannels = server?.channels.filter(
+  const audioChannels = server?.channels?.filter(
     (channel: any) => channel.type === ChannelType.AUDIO
   );
-  const videoChannels = server?.channels.filter(
+  const videoChannels = server?.channels?.filter(
     (channel: any) => channel.type === ChannelType.VIDEO
   );
-  const members = server?.members.filter(
+  const members = server?.members?.filter(
     (member: any) => member.profileId !== profile.id
   );
 
@@ -55,7 +55,7 @@ export const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
     return redirect('/');
   }
 
-  const role = server.members.find(
+  const role = server?.members!.find(
     (member: any) => member.profileId === profile.id
   )?.role as MemberRole;
 

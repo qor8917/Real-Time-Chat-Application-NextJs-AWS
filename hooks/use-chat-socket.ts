@@ -1,25 +1,27 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-// import { useSocket } from '@/components/providers/socket-provider';
 import { useSocket } from '@/components/providers/socket-provider';
 
 type ChatSocketProps = {
   addKey: string;
   updateKey: string;
   queryKey: string;
+  bottomRef: any;
 };
 
 export const useChatSocket = ({
   addKey,
   updateKey,
   queryKey,
+  bottomRef,
 }: ChatSocketProps) => {
   const { socket, isConnected } = useSocket();
   const queryClient = useQueryClient();
   useEffect(() => {
     if (!isConnected) return;
     socket!.onmessage = (event: any) => {
+      console.log(event);
       queryClient.setQueryData([queryKey], (oldData: any) => {
         console.log(event);
         const data = JSON.parse(event.data);
@@ -37,6 +39,12 @@ export const useChatSocket = ({
           ...newData[0],
           Items: [data, ...newData[0].Items],
         };
+        setTimeout(() => {
+          bottomRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'end',
+          });
+        }, 100);
         return {
           ...oldData,
           pages: newData,
