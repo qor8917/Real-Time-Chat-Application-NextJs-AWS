@@ -74,7 +74,6 @@ export const EditServerModal = () => {
         values.name ? values.name : null,
         newBlob ? newBlob.url : null
       );
-      console.log(updatedServer);
       router.refresh();
       handleClose();
     }

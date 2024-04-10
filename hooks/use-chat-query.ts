@@ -1,36 +1,32 @@
 import qs from 'query-string';
 import { useInfiniteQuery } from '@tanstack/react-query';
-
+import { useSocket } from '@/components/providers/socket-provider';
+import { NextResponse } from 'next/server';
 // import { useSocket } from '@/components/providers/socket-provider';
 
 interface ChatQueryProps {
   queryKey: string;
   apiUrl: string;
-  paramKey: 'channelId' | 'conversationId';
-  paramValue: string;
+  chatId: string;
 }
 
-export const useChatQuery = ({
-  queryKey,
-  apiUrl,
-  paramKey,
-  paramValue,
-}: ChatQueryProps) => {
-  // const { isConnected } = useSocket();
-
-  const fetchMessages = async (pageParam = null) => {
+export const useChatQuery = ({ queryKey, apiUrl, chatId }: ChatQueryProps) => {
+  //한번마다 가져올 메세지 API
+  const fetchMessages = async (pageParam: any) => {
     const url = qs.stringifyUrl(
       {
         url: apiUrl,
         query: {
-          cursor: pageParam,
-          [paramKey]: paramValue,
+          roomId: chatId,
+          createdAt: pageParam ?? null,
         },
       },
       { skipNull: true }
     );
     const res = await fetch(url);
-    return res.json();
+    const data = await res.json();
+
+    return data;
   };
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
@@ -38,9 +34,10 @@ export const useChatQuery = ({
       queryKey: [queryKey],
       queryFn: ({ pageParam }) => fetchMessages(pageParam),
       initialPageParam: null,
-      getNextPageParam: (lastPage) => lastPage?.nextCursor,
-      // refetchInterval: isConnected ? false : 1000,
-      refetchInterval: 1000,
+      getNextPageParam: (lastPage: any) => {
+        return lastPage?.LastEvaluatedKey?.createdAt ?? null;
+      },
+      refetchOnWindowFocus: true,
     });
 
   return {

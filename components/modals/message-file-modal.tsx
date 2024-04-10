@@ -31,7 +31,7 @@ export const MessageFileModal = () => {
   const router = useRouter();
 
   const isModalOpen = isOpen && type === 'messageFile';
-  const { apiUrl, query } = data;
+  const { apiUrl } = data;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -49,15 +49,15 @@ export const MessageFileModal = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const url = qs.stringifyUrl({
-        url: apiUrl || '',
-        query,
-      });
+      // const url = qs.stringifyUrl({
+      //   url: apiUrl || '',
+      //   query,
+      // });
 
-      await axios.post(url, {
-        ...values,
-        content: values.fileUrl,
-      });
+      // await axios.post(url, {
+      //   ...values,
+      //   content: values.fileUrl,
+      // });
 
       form.reset();
       router.refresh();

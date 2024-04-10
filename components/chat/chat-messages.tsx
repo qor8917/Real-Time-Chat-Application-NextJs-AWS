@@ -1,7 +1,7 @@
 'use client';
 
-import { Fragment, useRef, ElementRef } from 'react';
-import { format } from 'date-fns';
+import { Fragment, useRef, ElementRef, useEffect } from 'react';
+import { format, fromUnixTime } from 'date-fns';
 import { Loader2, ServerCrash } from 'lucide-react';
 
 import { useChatQuery } from '@/hooks/use-chat-query';
@@ -10,53 +10,70 @@ import { useChatScroll } from '@/hooks/use-chat-scroll';
 import { ChatWelcome } from './chat-welcome';
 import { ChatItem } from './chat-item';
 import { Member, Message, Profile } from '@/db/schema';
+import { useChatSocket } from '@/hooks/use-chat-socket';
+import { useSocket } from '../providers/socket-provider';
+import { useQueryClient } from '@tanstack/react-query';
 
 const DATE_FORMAT = 'd MMM yyyy, HH:mm';
-
-type MessageWithMemberWithProfile = Message & {
-  member: Member & {
-    profile: Profile;
-  };
-};
 
 interface ChatMessagesProps {
   name: string;
   chatId: string;
   apiUrl: string;
-  socketUrl: string;
-  socketQuery: Record<string, string>;
-  paramKey: 'channelId' | 'conversationId';
-  paramValue: string;
   type: 'channel' | 'conversation';
   member: Member;
+  profile: Profile;
 }
 
 export const ChatMessages = ({
   name,
   member,
   chatId,
+  profile,
   apiUrl,
-  socketUrl,
-  socketQuery,
-  paramKey,
-  paramValue,
   type,
 }: ChatMessagesProps) => {
+  const { socket, isConnected } = useSocket();
+
   const queryKey = `chat:${chatId}`;
   const addKey = `chat:${chatId}:messages`;
   const updateKey = `chat:${chatId}:messages:update`;
 
   const chatRef = useRef<ElementRef<'div'>>(null);
   const bottomRef = useRef<ElementRef<'div'>>(null);
-
+  //인피니트 로딩을 위한 준비
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
     useChatQuery({
       queryKey,
       apiUrl,
-      paramKey,
-      paramValue,
+      chatId,
     });
-  // useChatSocket({ queryKey, addKey, updateKey });
+
+  //메세지 구독중
+  useChatSocket({ queryKey, addKey, updateKey });
+  useEffect(() => {
+    if (!isConnected) return;
+
+    socket!.send(
+      JSON.stringify({
+        action: 'enterroom',
+        data: {
+          roomId: chatId,
+          userId: profile.name,
+        },
+      })
+    );
+    return socket!.send(
+      JSON.stringify({
+        action: 'leaveroom',
+        data: {
+          roomId: chatId,
+          userId: profile.name,
+        },
+      })
+    );
+  }, [isConnected]);
+  //스크롤 감지
   useChatScroll({
     chatRef,
     bottomRef,
@@ -88,7 +105,7 @@ export const ChatMessages = ({
   }
 
   return (
-    <div ref={chatRef} className="flex-1 flex flex-col py-4 overflow-y-auto">
+    <div ref={chatRef} className="flex-1 flex flex-col py-4 overflow-y-auto ">
       {!hasNextPage && <div className="flex-1" />}
       {!hasNextPage && <ChatWelcome type={type} name={name} />}
       {hasNextPage && (
@@ -106,25 +123,27 @@ export const ChatMessages = ({
         </div>
       )}
       <div className="flex flex-col-reverse mt-auto">
-        {data?.pages?.map((group, i) => (
-          <Fragment key={i}>
-            {group.items.map((message: MessageWithMemberWithProfile) => (
-              <ChatItem
-                key={message.id}
-                id={message.id}
-                currentMember={member}
-                member={message.member}
-                content={message.content}
-                fileUrl={message.fileUrl}
-                deleted={message.deleted as boolean}
-                timestamp={format(new Date(message.createdAt), DATE_FORMAT)}
-                isUpdated={message.updatedAt !== message.createdAt}
-                socketUrl={socketUrl}
-                socketQuery={socketQuery}
-              />
-            ))}
-          </Fragment>
-        ))}
+        {data &&
+          data.pages.map((group, i) => (
+            <Fragment key={i}>
+              {group.Items.map((message: any, j: any) => (
+                <ChatItem
+                  key={j}
+                  // id={message.id}
+                  currentMember={member}
+                  member={message.member}
+                  content={message.msg}
+                  fileUrl={message.fileUrl}
+                  deleted={message.deleted as boolean}
+                  timestamp={format(
+                    fromUnixTime(message.createdAt),
+                    DATE_FORMAT
+                  )}
+                  isUpdated={message.updatedAt !== message.createdAt}
+                />
+              ))}
+            </Fragment>
+          ))}
       </div>
       <div ref={bottomRef} />
     </div>

@@ -1,8 +1,6 @@
 'use client';
 
 import * as z from 'zod';
-import axios from 'axios';
-import qs from 'query-string';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from 'lucide-react';
@@ -12,10 +10,14 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useModal } from '@/hooks/use-modal-store';
 import { EmojiPicker } from '@/components/emoji-picker';
+import { useSocket } from '../providers/socket-provider';
+import { Member } from '@/db/schema';
+import { useEffect, useState } from 'react';
 
 interface ChatInputProps {
   apiUrl: string;
-  query: Record<string, any>;
+  member: Member;
+  channelId: string;
   name: string;
   type: 'conversation' | 'channel';
 }
@@ -24,10 +26,16 @@ const formSchema = z.object({
   content: z.string().min(1),
 });
 
-export const ChatInput = ({ apiUrl, query, name, type }: ChatInputProps) => {
+export const ChatInput = ({
+  apiUrl,
+  channelId,
+  name,
+  type,
+  member,
+}: ChatInputProps) => {
   const { onOpen } = useModal();
   const router = useRouter();
-
+  const { socket } = useSocket();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,12 +47,25 @@ export const ChatInput = ({ apiUrl, query, name, type }: ChatInputProps) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const url = qs.stringifyUrl({
-        url: apiUrl,
-        query,
-      });
-      console.log(url);
-      await axios.post(url, values);
+      console.log('전송 ');
+      socket!.send(
+        JSON.stringify({
+          action: 'sendmessage',
+          data: {
+            roomId: channelId,
+            member,
+            msg: values.content,
+            fileUrl: '',
+          },
+        })
+      );
+
+      // const url = qs.stringifyUrl({
+      //   url: apiUrl,
+      //   query,
+      // });
+      // console.log(url);
+      // await axios.post(url, values);
 
       form.reset();
       router.refresh();
@@ -65,7 +86,7 @@ export const ChatInput = ({ apiUrl, query, name, type }: ChatInputProps) => {
                 <div className="relative p-4 pb-6">
                   <button
                     type="button"
-                    onClick={() => onOpen('messageFile', { apiUrl, query })}
+                    onClick={() => onOpen('messageFile', { apiUrl })}
                     className="absolute top-7 left-8 h-[24px] w-[24px] bg-zinc-500 dark:bg-zinc-400 hover:bg-zinc-600 dark:hover:bg-zinc-300 transition rounded-full p-1 flex items-center justify-center"
                   >
                     <Plus className="text-white dark:text-[#313338]" />

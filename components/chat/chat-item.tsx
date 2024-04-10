@@ -20,7 +20,7 @@ import { useModal } from '@/hooks/use-modal-store';
 import { Member, MemberRole, Profile } from '@/db/schema';
 
 interface ChatItemProps {
-  id: string;
+  // id: string;
   content: string;
   member:
     | Member & {
@@ -31,8 +31,6 @@ interface ChatItemProps {
   deleted: boolean;
   currentMember: Member;
   isUpdated: boolean;
-  socketUrl: string;
-  socketQuery: Record<string, string>;
 }
 
 const roleIconMap = {
@@ -46,7 +44,7 @@ const formSchema = z.object({
 });
 
 export const ChatItem = ({
-  id,
+  // id,
   content,
   member,
   timestamp,
@@ -54,8 +52,6 @@ export const ChatItem = ({
   deleted,
   currentMember,
   isUpdated,
-  socketUrl,
-  socketQuery,
 }: ChatItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const { onOpen } = useModal();
@@ -66,7 +62,6 @@ export const ChatItem = ({
     if (member.id === currentMember.id) {
       return;
     }
-
     router.push(`/servers/${params?.serverId}/conversations/${member.id}`);
   };
 
@@ -93,12 +88,12 @@ export const ChatItem = ({
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const url = qs.stringifyUrl({
-        url: `${socketUrl}/${id}`,
-        query: socketQuery,
-      });
+      // const url = qs.stringifyUrl({
+      //   url: `${socketUrl}/${id}`,
+      //   query: socketQuery,
+      // });
 
-      await axios.patch(url, values);
+      // await axios.patch(url, values);
 
       form.reset();
       setIsEditing(false);
@@ -240,12 +235,12 @@ export const ChatItem = ({
           )}
           <ActionTooltip label="Delete">
             <Trash
-              onClick={() =>
-                onOpen('deleteMessage', {
-                  apiUrl: `${socketUrl}/${id}`,
-                  query: socketQuery,
-                })
-              }
+              // onClick={() =>
+              // onOpen('deleteMessage', {
+              //   apiUrl: `${socketUrl}/${id}`,
+              //   query: socketQuery,
+              // })
+              // }
               className="cursor-pointer ml-auto w-4 h-4 text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
             />
           </ActionTooltip>

@@ -24,6 +24,7 @@ export const useChatScroll = ({
       const scrollTop = topDiv?.scrollTop;
 
       if (scrollTop === 0 && shouldLoadMore) {
+        console.log('추가 가져오기 실행');
         loadMore();
       }
     };

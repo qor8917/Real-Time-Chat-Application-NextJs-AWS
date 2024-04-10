@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ModalProvider } from '@/components/providers/modal-provider';
 import { QueryProvider } from '@/components/providers/query-provider';
+import { SocketProvider } from '@/components/providers/socket-provider';
 
 const font = Open_Sans({ subsets: ['latin'] });
 
@@ -30,8 +31,10 @@ export default function RootLayout({
             enableSystem={false}
             storageKey="dubai"
           >
-            <ModalProvider />
-            <QueryProvider>{children}</QueryProvider>
+            <SocketProvider>
+              <ModalProvider />
+              <QueryProvider>{children}</QueryProvider>
+            </SocketProvider>
           </ThemeProvider>
           <Toaster />
         </body>

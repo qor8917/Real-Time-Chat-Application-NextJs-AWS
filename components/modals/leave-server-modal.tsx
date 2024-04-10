@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { useModal } from '@/hooks/use-modal-store';
 import { Button } from '@/components/ui/button';
+import { deleteMember, getProfile } from '@/db/queries';
 
 export const LeaveServerModal = () => {
   const { isOpen, onClose, type, data } = useModal();
@@ -27,8 +28,8 @@ export const LeaveServerModal = () => {
   const onClick = async () => {
     try {
       setIsLoading(true);
-
-      await axios.patch(`/api/servers/${server?.id}/leave`);
+      const profile = await getProfile();
+      const deleted = await deleteMember(server?.id!, profile?.id!);
 
       onClose();
       router.refresh();

@@ -15,6 +15,8 @@ export const NavigationSidebar = async () => {
   if (!profile) {
     return redirect('/');
   }
+
+  //
   const servers = await getServersByProfileId(profile.id);
 
   return (

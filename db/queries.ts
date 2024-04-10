@@ -62,19 +62,64 @@ export const getServerByProfileId = async (id: any) => {
   });
   return server;
 };
-export const getServersByProfileId = async (id: any) => {
+export const getServerByInviteCodeAndIncludeProfile = async (
+  inviteCode: any,
+  profileId: any
+) => {
   const { userId } = auth();
 
   if (!userId) {
     return null;
   }
 
-  const server = await db.query.servers.findMany({
-    where: eq(servers.profileId, id),
-    orderBy: (servers, { asc }) => [asc(servers.createdAt)],
+  const server = await db.query.servers.findFirst({
+    where: eq(servers.inviteCode, inviteCode),
+    with: {
+      channels: true,
+      members: { where: eq(members.profileId, profileId) },
+      profile: true,
+    },
   });
-
   return server;
+};
+export const getServerByInviteCode = async (inviteCode: any) => {
+  const { userId } = auth();
+
+  if (!userId) {
+    return null;
+  }
+
+  const server = await db.query.servers.findFirst({
+    where: eq(servers.inviteCode, inviteCode),
+    with: {
+      channels: true,
+      members: true,
+      profile: true,
+    },
+  });
+  return server;
+};
+export const getServersByProfileId = async (id: any) => {
+  const { userId } = auth();
+
+  if (!userId) {
+    return null;
+  }
+  const FoundServers: any[] = [];
+  //사용자가 멤버로서 속해있는 모든 멤버 찾음
+  const membersByProfile = await db.query.members.findMany({
+    where: eq(members.profileId, id),
+  });
+  //멤버로서 속해있는 모든 서버 찾음
+
+  for (const member of membersByProfile) {
+    const server = await db.query.servers.findFirst({
+      where: eq(servers.id, member.serverId!),
+    });
+    FoundServers.push(server);
+  }
+
+  return FoundServers;
 };
 export const getServerById = async (id: any) => {
   const { userId } = auth();
@@ -154,6 +199,7 @@ export const createServer = async (
   ]);
   return newServer;
 };
+
 export const updateServerInviteCode = async (
   serverId: string
 ): Promise<Server> => {
@@ -165,6 +211,23 @@ export const updateServerInviteCode = async (
   return updatedServer[0];
 };
 export const updateServerNameAndImageUrl = async (
+  serversId: string,
+  name: string | null,
+  imageUrl: string | null
+): Promise<Server> => {
+  const profile = await getProfile();
+
+  const updatedServer = await db
+    .update(servers)
+    .set({
+      name: name ? name : profile?.name,
+      imageUrl: imageUrl ? imageUrl : profile?.imageUrl,
+    })
+    .where(eq(servers.id, serversId))
+    .returning();
+  return updatedServer[0];
+};
+export const updateServerMember = async (
   serversId: string,
   name: string | null,
   imageUrl: string | null
@@ -199,6 +262,7 @@ export const createChannel = async (
     },
   ]);
 };
+
 export const deleteServerById = async (id: string) => {
   await db.delete(servers).where(eq(servers.id, id));
 };
@@ -247,6 +311,33 @@ export const getMemberByServerIdAndProfileId = async (
       eq(members.serverId, serverId),
       eq(members.profileId, profileId)
     ),
+    with: {
+      profile: true,
+    },
   });
   return channel;
+};
+
+export const createMember = async (serverId: string, profileId: string) => {
+  const createMember = await db.insert(members).values([
+    {
+      id: v4(),
+      role: MemberRole.GUEST,
+      profileId: profileId,
+      serverId: serverId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ]);
+
+  return createMember;
+};
+export const deleteMember = async (serverId: string, profileId: string) => {
+  const deletedUser = await db
+    .delete(members)
+    .where(
+      and(eq(members.profileId, profileId), eq(members.serverId, serverId))
+    )
+    .returning();
+  return deletedUser;
 };

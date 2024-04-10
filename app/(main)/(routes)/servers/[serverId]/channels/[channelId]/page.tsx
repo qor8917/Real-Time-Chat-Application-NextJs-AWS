@@ -20,18 +20,11 @@ interface ChannelIdPageProps {
 }
 
 const ChannelIdPage = async ({ params }: ChannelIdPageProps) => {
-  console.log('채널가져오기 시작', new Date().getSeconds(), Date.now());
   const profile = await getProfile();
 
   if (!profile) {
     return redirectToSignIn();
   }
-  console.log(
-    'DB채널가져오기 시작',
-    new Date().getSeconds(),
-    params.channelId,
-    Date.now()
-  );
 
   const channel = await getChannelById(params.channelId);
 
@@ -39,18 +32,10 @@ const ChannelIdPage = async ({ params }: ChannelIdPageProps) => {
     params.serverId,
     profile.id
   );
-  console.log(
-    'DB채널가져오기 끝남',
-    new Date().getSeconds(),
-    params.channelId,
-    Date.now()
-  );
 
   if (!channel || !member) {
     redirect('/');
   }
-  console.log('채널가져오기 끝남', new Date().getSeconds(), Date.now());
-
   return (
     <div className="bg-white dark:bg-[#313338] flex flex-col h-full">
       <ChatHeader
@@ -62,26 +47,18 @@ const ChannelIdPage = async ({ params }: ChannelIdPageProps) => {
         <>
           <ChatMessages
             member={member}
+            profile={profile}
             name={channel.name}
             chatId={channel.id}
             type="channel"
-            apiUrl="/api/messages"
-            socketUrl="/api/socket/messages"
-            socketQuery={{
-              channelId: channel.id,
-              serverId: channel.serverId,
-            }}
-            paramKey="channelId"
-            paramValue={channel.id}
+            apiUrl="https://7m3zd43vv6.execute-api.me-central-1.amazonaws.com/product/chats"
           />
           <ChatInput
             name={channel.name}
+            member={member}
             type="channel"
             apiUrl="/api/socket/messages"
-            query={{
-              channelId: channel.id,
-              serverId: channel.serverId,
-            }}
+            channelId={channel.id}
           />
         </>
       )}
