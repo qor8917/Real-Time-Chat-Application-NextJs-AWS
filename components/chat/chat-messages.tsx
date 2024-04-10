@@ -72,7 +72,7 @@ export const ChatMessages = ({
         },
       })
     );
-  }, [isConnected]);
+  }, [isConnected, chatId]);
   //스크롤 감지
   useChatScroll({
     chatRef,

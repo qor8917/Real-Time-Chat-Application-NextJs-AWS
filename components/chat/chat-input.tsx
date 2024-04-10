@@ -47,7 +47,6 @@ export const ChatInput = ({
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      console.log('전송 ');
       socket!.send(
         JSON.stringify({
           action: 'sendmessage',
@@ -68,7 +67,7 @@ export const ChatInput = ({
       // await axios.post(url, values);
 
       form.reset();
-      router.refresh();
+      // router.refresh();
     } catch (error) {
       console.log(error);
     }

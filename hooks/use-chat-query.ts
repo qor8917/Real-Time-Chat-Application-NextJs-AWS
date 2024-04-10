@@ -37,7 +37,6 @@ export const useChatQuery = ({ queryKey, apiUrl, chatId }: ChatQueryProps) => {
       getNextPageParam: (lastPage: any) => {
         return lastPage?.LastEvaluatedKey?.createdAt ?? null;
       },
-      refetchOnWindowFocus: true,
     });
 
   return {

@@ -20,11 +20,7 @@ export const useChatSocket = ({
   useEffect(() => {
     if (!isConnected) return;
     socket!.onmessage = (event: any) => {
-      // const data = JSON.parse(event.data);
-      // if (typeof data !== 'object') return;
-
       queryClient.setQueryData([queryKey], (oldData: any) => {
-        console.log(oldData);
         console.log(event);
         const data = JSON.parse(event.data);
         if (!oldData || !oldData.pages || oldData.pages.length === 0) {
@@ -104,5 +100,5 @@ export const useChatSocket = ({
     //     pages: newData,
     //   };
     // });
-  }, [isConnected]);
+  }, [isConnected, socket]);
 };
