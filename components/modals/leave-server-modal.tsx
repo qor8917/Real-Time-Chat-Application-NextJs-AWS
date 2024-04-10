@@ -32,17 +32,17 @@ export const LeaveServerModal = () => {
       setIsLoading(true);
       const profile = await getProfile();
       const deleted = await deleteMember(server?.id!, profile?.id!);
-      // server?.channels?.forEach((ch) =>
-      //   socket!.send(
-      //     JSON.stringify({
-      //       action: 'leaveroom',
-      //       data: {
-      //         roomId: ch.id,
-      //         userId: profile?.name,
-      //       },
-      //     })
-      //   )
-      // );
+      server?.channels?.forEach((ch) =>
+        socket!.send(
+          JSON.stringify({
+            action: 'leaveroom',
+            data: {
+              roomId: ch.id,
+              userId: profile?.name,
+            },
+          })
+        )
+      );
       onClose();
       router.refresh();
       router.push('/');
