@@ -28,9 +28,10 @@ export const DeleteServerModal = () => {
   const onClick = async () => {
     try {
       setIsLoading(true);
-      await deleteServerById(server!.id);
+      const deletedSever = await deleteServerById(server!.id);
       onClose();
       router.refresh();
+      router.push('/');
     } catch (error) {
       console.log(error);
     } finally {

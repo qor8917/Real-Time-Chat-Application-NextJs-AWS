@@ -264,7 +264,7 @@ export const createChannel = async (
 };
 
 export const deleteServerById = async (id: string) => {
-  await db.delete(servers).where(eq(servers.id, id));
+  return await db.delete(servers).where(eq(servers.id, id)).returning();
 };
 export const deleteChannelById = async (id: string) => {
   await db.delete(channels).where(eq(channels.id, id));

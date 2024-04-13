@@ -123,7 +123,10 @@ export const ChatMessages = ({
                   content={message.msg}
                   fileUrl={message.fileUrl}
                   deleted={message.deleted as boolean}
-                  timestamp={message.createdAt}
+                  timestamp={format(
+                    new Date(parseInt(message.createdAt)),
+                    DATE_FORMAT
+                  )}
                   isUpdated={message.updatedAt !== message.createdAt}
                 />
               ))}

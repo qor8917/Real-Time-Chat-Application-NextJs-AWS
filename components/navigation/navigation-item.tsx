@@ -18,7 +18,7 @@ export const NavigationItem = ({ id, imageUrl, name }: NavigationItemProps) => {
 
   const onClick = () => {
     router.push(`/servers/${id}`);
-    // router.refresh();
+    router.refresh();
   };
 
   return (
