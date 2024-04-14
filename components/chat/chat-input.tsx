@@ -35,7 +35,7 @@ export const ChatInput = ({
 }: ChatInputProps) => {
   const { onOpen } = useModal();
   const router = useRouter();
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,7 +47,6 @@ export const ChatInput = ({
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      console.log(member);
       socket!.send(
         JSON.stringify({
           action: 'sendmessage',

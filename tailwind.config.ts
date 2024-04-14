@@ -74,7 +74,11 @@ const config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('tailwindcss/nesting'),
+    require('postcss-nesting'),
+  ],
 } satisfies Config;
 
 export default config;

@@ -31,7 +31,6 @@ export const DeleteServerModal = () => {
       const deletedSever = await deleteServerById(server!.id);
       onClose();
       router.refresh();
-      router.push('/');
     } catch (error) {
       console.log(error);
     } finally {
